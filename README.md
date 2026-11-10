@@ -118,3 +118,5 @@ py -3.13 -m pytest backend/tests -q
 ## Project layout
 
 `frontend/` contains the ECONOVA React/TypeScript application; `backend/app/` contains the FastAPI API, authentication, SQLAlchemy models and World Bank/forecast/sensitivity services. `economic_engine/`, `forecasting/`, `simulation/`, `ai_engine/` and `reports/` contain supporting components and extension points. See `docs/architecture.md`, `docs/api_documentation.md` and `docs/database_design.md` for design context.
+#   E C O N O V A  
+ 
