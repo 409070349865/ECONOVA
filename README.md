@@ -1,122 +1,798 @@
+<div align="center">
+
 # ECONOVA
 
-**Economic Intelligence & Research Platform**
+### Economic Intelligence & Research Platform
 
-ECONOVA is one local-first application with a shared React/FastAPI interface. It uses stored, source-attributed economic observations and explicitly distinguishes provider publication schedules from live market feeds. This repository supports an operational local application, not a fully implemented research-grade production platform.
+**Understand the economy. Explore the evidence. Model what comes next.**
 
-## Run locally
+A unified economic intelligence workspace for exploring Indian and global economic indicators, comparing countries, studying policy, building forecasts, and conducting evidence-led research.
 
-Requirements: Python 3.11+, Node.js 20+, and npm. No paid service is required for the implemented functionality.
+[Dashboard Preview](#dashboard-preview) · [Platform Architecture](#platform-architecture) · [Modules](#platform-modules) · [Getting Started](#getting-started) · [Data & Research Integrity](#data--research-integrity)
 
-### Backend
+</div>
 
-PowerShell:
+---
 
-```powershell
-Set-Location C:\Users\Atharaw\OneDrive\Desktop\ECONOVA\backend
-py -3.13 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+## Table of Contents
+
+- [Overview](#overview)
+- [Dashboard Preview](#dashboard-preview)
+- [Platform Modules](#platform-modules)
+- [Platform Architecture](#platform-architecture)
+- [Technology Stack](#technology-stack)
+- [Repository Structure](#repository-structure)
+- [Data Architecture and Sources](#data-architecture-and-sources)
+- [AI Economist and Research Workflow](#ai-economist-and-research-workflow)
+- [Forecasting and Scenario Simulation](#forecasting-and-scenario-simulation)
+- [Security and Administration](#security-and-administration)
+- [Getting Started](#getting-started)
+- [Configuration](#configuration)
+- [API Overview](#api-overview)
+- [Testing and Quality](#testing-and-quality)
+- [Deployment](#deployment)
+- [Roadmap](#roadmap)
+- [Data & Research Integrity](#data--research-integrity)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
+## Overview
+
+**ECONOVA** is designed as a research-oriented economic intelligence platform covering both the **Indian economy and the global economy**. It brings economic monitoring, country comparisons, forecasting, policy research, scenario analysis, trade intelligence, financial indicators, and human-development metrics into one consistent workspace.
+
+Rather than presenting disconnected charts, ECONOVA is designed to connect:
+
+- **Data** — sourced economic observations with dates, units, frequency, and provenance.
+- **Analysis** — historical trends, country comparisons, statistical methods, and indicator relationships.
+- **AI-assisted research** — questions answered with retrieved evidence and traceable sources.
+- **Forecasting** — reproducible model runs, evaluation metrics, and uncertainty intervals.
+- **Policy and scenarios** — structured analysis of policy documents and clearly labelled hypothetical simulations.
+- **Reporting** — saved analyses and source-attributed reports.
+
+### Product principles
+
+1. **Evidence before interpretation:** show the source, period, unit, and retrieval status behind a figure.
+2. **No fabricated observations:** missing data is shown as unavailable, not silently estimated.
+3. **Transparent uncertainty:** forecasts and simulations include assumptions and limitations.
+4. **Modular, integrated experience:** twelve functional areas share one application shell and common data services.
+5. **Local-first development:** the core application should remain usable locally without requiring a paid cloud service.
+6. **Responsible AI:** distinguish sourced facts, calculated results, interpretations, and hypotheses.
+
+> **Project status:** This README documents the intended product architecture and dashboard direction. The screenshot is a UI preview, not proof that every module, integration, or metric is already implemented. Update the implementation status and setup commands to match the current repository before publishing a production release.
+
+---
+
+## Dashboard Preview
+
+The following screenshot was provided as the visual reference for the ECONOVA workspace.
+
+<p align="center">
+  <img src="assets/econova-dashboard-preview.png" alt="ECONOVA dark economic intelligence dashboard preview" width="100%">
+</p>
+
+*The dashboard uses a premium dark research-terminal style, with module navigation, economic KPI cards, indicator trends, global comparisons, briefings, and research tools. Values visible in a design preview should be treated as illustrative unless independently verified against a cited data source.*
+
+### Dashboard layout
+
+- **Left navigation:** Overview and the twelve ECONOVA modules.
+- **Global toolbar:** module search, country selection, date range, help, and user profile.
+- **KPI row:** GDP growth, CPI inflation, unemployment, and fiscal balance where observations are available.
+- **Economic trends:** time-series charts with date range and source context.
+- **Global overview:** country-level comparisons with unavailable values clearly indicated.
+- **Economic briefing:** latest stored observations and their periods.
+- **Workspace tools:** reports, forecasting, and scenario analysis shortcuts.
+
+---
+
+## Platform Modules
+
+ECONOVA is organized into twelve connected modules. Each module should have its own route, page-level state, filters, visualizations, and API integration while reusing shared components and services.
+
+| # | Module | Suggested route | Purpose |
+|---:|---|---|---|
+| 1 | **ECONOVA PULSE** | `/pulse` | Monitor macroeconomic indicators such as GDP, inflation, employment, industrial production, interest rates, reserves, and fiscal balance. |
+| 2 | **ECONOVA GLOBAL** | `/global` | Explore countries and regions, compare up to five economies, and examine GDP, inflation, unemployment, debt, and development indicators. |
+| 3 | **ECONOVA FORECAST** | `/forecast` | Run and compare time-series and machine-learning forecasts with backtesting, evaluation metrics, and uncertainty intervals. |
+| 4 | **ECONOVA AI ECONOMIST** | `/ai-economist` | Ask economic questions, retrieve research evidence, explain indicators, and generate cited analytical responses. |
+| 5 | **ECONOVA POLICYLAB** | `/policylab` | Explore Union Budget, Economic Survey, RBI policy, fiscal and monetary policy, taxation, and public expenditure documents. |
+| 6 | **ECONOVA SIMULATOR** | `/simulator` | Model hypothetical shocks such as oil-price changes, interest-rate shifts, currency depreciation, and spending changes. |
+| 7 | **ECONOVA TRADE** | `/trade` | Study imports, exports, trade balances, commodity flows, trade partners, and concentration or dependency risks. |
+| 8 | **ECONOVA FINANCE** | `/finance` | Explore monetary and financial indicators such as policy rates, money supply, exchange rates, bond yields, reserves, and credit. |
+| 9 | **ECONOVA RESEARCH LAB** | `/research` | Organize research documents, extract content, conduct literature reviews, manage citations, and run statistical analysis. |
+| 10 | **ECONOVA DATA EXPLORER** | `/data-explorer` | Search the indicator catalogue, inspect datasets, filter by country and period, review metadata, and export data. |
+| 11 | **ECONOVA DEVELOPMENT & HUMAN PROGRESS** | `/development` | Explore poverty, inequality, education, healthcare, labour participation, human development, and sustainable development. |
+| 12 | **ECONOVA INSIGHTS & REPORTS** | `/insights` | Create daily or periodic briefings, country reports, policy reports, forecast summaries, and custom exports. |
+
+### Shared workspace
+
+The modules share a consistent application shell:
+
+- Sidebar navigation and active-module state
+- Global search and country/date filters
+- Reusable KPI cards, charts, tables, and source badges
+- Notifications, saved analyses, and user preferences
+- Contextual AI research panel
+- Data freshness and system-status indicators
+- Responsive desktop, tablet, and mobile layouts
+
+---
+
+## Platform Architecture
+
+### 1. High-level architecture
+
+```mermaid
+flowchart TB
+    U[User / Researcher / Administrator]
+    FE[Frontend Application<br/>React + TypeScript]
+    API[FastAPI Application<br/>Versioned REST API]
+    AUTH[Authentication & RBAC]
+    MOD[Domain Modules]
+    DATA[Data Ingestion & Validation]
+    DB[(PostgreSQL)]
+    SQLITE[(SQLite Local Fallback)]
+    FILES[(Parquet / Document Storage)]
+    CACHE[(Optional Cache)]
+    AI[AI Research & RAG Service]
+    ML[Forecasting & Statistical Engine]
+    SIM[Scenario Simulation Engine]
+    EXT[External Economic Data Providers]
+
+    U --> FE
+    FE --> API
+    API --> AUTH
+    API --> MOD
+    MOD --> DATA
+    DATA --> EXT
+    DATA --> DB
+    DATA --> FILES
+    API --> SQLITE
+    API --> CACHE
+    MOD --> AI
+    MOD --> ML
+    MOD --> SIM
+    AI --> DB
+    AI --> FILES
+    ML --> DB
+    SIM --> DB
 ```
 
-The backend uses SQLite by default, stored in the backend working directory. When `SECRET_KEY` is not set in single-process local SQLite mode, a random process-local signing key is generated; existing JWTs become invalid after a backend restart. Set a unique secret of at least 32 characters for any shared or multi-process deployment. OpenAPI documentation is at http://localhost:8000/docs.
+### 2. Architectural layers
 
-Register a normal researcher through the sign-in page. Administrator setup is never performed during public registration. To provision or rotate the protected **Atharav | SUPER_ADMIN** account, open another backend terminal and run:
+| Layer | Responsibility | Main components |
+|---|---|---|
+| Presentation | User interface, navigation, filters, visualizations, responsive layout | React, TypeScript, Vite, Tailwind CSS |
+| API | Request validation, routing, serialization, versioning, error handling | FastAPI, Pydantic |
+| Identity & access | Login, session/token handling, role-based permissions | Secure password hashing, authentication middleware, RBAC |
+| Domain services | Economic indicators, country data, trade, finance, policy, reports | Python service modules |
+| Data ingestion | Fetch, normalize, validate, deduplicate, and store observations | Provider adapters, Pandas, scheduled jobs |
+| Persistence | Users, metadata, observations, model runs, reports, audit events | PostgreSQL; SQLite for local development |
+| Analytical engine | Statistical analysis, forecasts, backtesting, simulations | NumPy, Pandas, Statsmodels, Scikit-learn |
+| AI research | Retrieval, document chunking, embeddings, grounded answers, citations | RAG pipeline, vector index such as FAISS |
+| File and dataset storage | Research documents, exports, and historical datasets | Local/object storage abstraction, Parquet |
+| Operations | Logs, health checks, tests, deployment configuration | Pytest, structured logging, Docker where configured |
 
-```powershell
-$env:ADMIN_EMAIL = Read-Host "Administrator email"
-py -m app.create_admin
-Remove-Item Env:ADMIN_EMAIL
+### 3. Request and data flow
+
+1. A user selects a module, country, indicator, and date range in the frontend.
+2. The frontend calls the relevant `/api/v1/...` endpoint.
+3. FastAPI validates parameters and checks access permissions.
+4. The domain service requests normalized observations from the data layer.
+5. The data layer returns stored records with source and time metadata, or invokes an approved provider adapter when ingestion is required.
+6. The service performs calculations or analytical transformations.
+7. The API returns structured results, metadata, and clear empty/error states.
+8. The frontend renders charts, tables, source attribution, and data freshness information.
+
+### 4. Suggested backend service boundaries
+
+- `auth`: identity, sessions/tokens, role checks
+- `users`: user profiles and preferences
+- `indicators`: indicator definitions, units, frequencies, and metadata
+- `countries`: country and region reference data
+- `ingestion`: provider adapters, sync jobs, validation, and provenance
+- `pulse`: macroeconomic dashboard queries
+- `global_economy`: country profiles and comparisons
+- `forecasting`: model training, inference, backtesting, and metrics
+- `ai_economist`: retrieval and grounded question answering
+- `policy`: policy documents and structured analysis
+- `simulator`: scenario inputs, assumptions, and results
+- `trade`: trade observations and partner analysis
+- `finance`: monetary and financial indicators
+- `research`: document processing, notes, and citations
+- `catalogue`: dataset discovery and exports
+- `development`: human-development indicators
+- `reports`: report generation and export
+- `admin`: user, system, ingestion, and audit management
+
+### 5. Suggested frontend boundaries
+
+- `app`: application bootstrap, routes, providers
+- `components/layout`: sidebar, top navigation, workspace, status bar
+- `components/common`: buttons, cards, badges, loading and error states
+- `components/charts`: time-series, comparison, distribution, and map visualizations
+- `components/tables`: indicator, ranking, and observation tables
+- `components/filters`: country, indicator, date, and frequency controls
+- `modules`: one page and supporting components for each ECONOVA module
+- `services`: typed API clients
+- `store`: shared UI and user preference state
+- `hooks`: reusable data and interaction hooks
+- `types` and `schemas`: API types and runtime validation
+- `utils` and `constants`: formatting, date, units, and shared configuration
+
+---
+
+## Technology Stack
+
+The following is the recommended architecture stack. Check the actual dependency manifests in this repository for the versions and packages currently installed.
+
+| Area | Recommended technology | Use |
+|---|---|---|
+| Frontend | React, TypeScript, Vite | Component-based web application |
+| Styling | Tailwind CSS | Responsive design system |
+| Routing | React Router | Module navigation |
+| Server state | TanStack Query | API caching and request lifecycle |
+| Client state | Zustand | Shared UI preferences and state |
+| Charts | Plotly.js | Interactive economic charts |
+| Forms | React Hook Form, Zod | Form state and validation |
+| Backend | Python, FastAPI | REST API and domain services |
+| Validation | Pydantic | Request and response schemas |
+| ORM and migrations | SQLAlchemy, Alembic | Relational persistence |
+| Primary database | PostgreSQL | Persistent application data |
+| Local fallback | SQLite | Local development without a database server |
+| Data analysis | Pandas, NumPy | Data cleaning and numerical analysis |
+| Econometrics | Statsmodels | Time-series and statistical models |
+| Machine learning | Scikit-learn | Baseline and ML forecasting |
+| Optional deep learning | TensorFlow | Experimental sequence models |
+| Document retrieval | FAISS and embeddings | Research retrieval / RAG |
+| Dataset format | Parquet | Efficient analytical storage |
+| Testing | Pytest; frontend test tooling | Automated quality checks |
+| Packaging | Docker / Docker Compose | Reproducible environments where configured |
+
+---
+
+## Repository Structure
+
+A suggested monorepo structure for the complete platform is shown below. Preserve the existing repository layout where it already serves the same purpose; do not duplicate or replace working code just to match this example.
+
+```text
+ECONOVA/
+├── README.md
+├── .env.example
+├── .gitignore
+├── docker-compose.yml
+│
+├── frontend/
+│   ├── public/
+│   │   ├── favicon.ico
+│   │   └── assets/
+│   ├── src/
+│   │   ├── app/
+│   │   ├── assets/
+│   │   ├── components/
+│   │   │   ├── common/
+│   │   │   ├── layout/
+│   │   │   ├── navigation/
+│   │   │   ├── charts/
+│   │   │   ├── tables/
+│   │   │   └── filters/
+│   │   ├── modules/
+│   │   │   ├── overview/
+│   │   │   ├── pulse/
+│   │   │   ├── global/
+│   │   │   ├── forecast/
+│   │   │   ├── ai-economist/
+│   │   │   ├── policylab/
+│   │   │   ├── simulator/
+│   │   │   ├── trade/
+│   │   │   ├── finance/
+│   │   │   ├── research/
+│   │   │   ├── data-explorer/
+│   │   │   ├── development/
+│   │   │   └── insights/
+│   │   ├── hooks/
+│   │   ├── services/
+│   │   ├── store/
+│   │   ├── types/
+│   │   ├── schemas/
+│   │   ├── utils/
+│   │   └── styles/
+│   ├── package.json
+│   └── vite.config.ts
+│
+├── backend/
+│   ├── app/
+│   │   ├── main.py
+│   │   ├── core/
+│   │   ├── api/
+│   │   │   └── v1/
+│   │   ├── models/
+│   │   ├── schemas/
+│   │   ├── repositories/
+│   │   ├── services/
+│   │   ├── modules/
+│   │   ├── ingestion/
+│   │   ├── analytics/
+│   │   ├── forecasting/
+│   │   ├── ai/
+│   │   ├── simulation/
+│   │   ├── security/
+│   │   └── utils/
+│   ├── migrations/
+│   ├── tests/
+│   └── requirements.txt
+│
+├── data/
+│   ├── raw/
+│   ├── processed/
+│   ├── reference/
+│   └── README.md
+│
+├── research/
+│   ├── documents/
+│   ├── notebooks/
+│   └── methodology/
+│
+├── scripts/
+│   ├── seed_database.py
+│   └── run_ingestion.py
+│
+└── docs/
+    ├── architecture/
+    ├── api/
+    ├── data-dictionary/
+    └── screenshots/
 ```
 
-The CLI prompts for a password without echoing it and requires at least 14 characters. It stores only the password hash and records the provisioning event. No default administrator password or token exists in the source.
+---
 
-### Frontend
+## Data Architecture and Sources
+
+ECONOVA should use provider adapters so that each source can be updated or replaced without coupling the frontend to a provider-specific API.
+
+### Candidate public data sources
+
+| Provider | Potential coverage | Integration considerations |
+|---|---|---|
+| World Bank Open Data | GDP, population, poverty, development, education, health, and other country indicators | Indicator codes, annual frequency, revisions, and attribution |
+| Reserve Bank of India (RBI) | Indian monetary, banking, financial, and macroeconomic statistics | Use official publications and documented access methods |
+| Ministry of Statistics and Programme Implementation (MoSPI) | Indian national accounts, CPI, IIP, and official statistics | Publication calendar and revised estimates |
+| International Monetary Fund (IMF) | International macroeconomic and financial datasets | Dataset definitions, release cycles, and licensing |
+| OECD | Country and policy statistics | Coverage varies by indicator and country |
+| UN Comtrade | Merchandise trade flows by reporter, partner, and commodity | Classification, units, reporting period, and API terms |
+
+### Canonical observation model
+
+A normalized observation should retain enough metadata to be interpreted and reproduced.
+
+```json
+{
+  "country_code": "IND",
+  "indicator_code": "GDP_GROWTH",
+  "indicator_name": "GDP growth (annual %)",
+  "value": 0.0,
+  "unit": "percent",
+  "frequency": "annual",
+  "observation_period": "YYYY",
+  "source": "Provider name",
+  "source_url": "https://example.com/dataset",
+  "retrieved_at": "ISO-8601 timestamp",
+  "published_at": null,
+  "revision_status": "unverified"
+}
+```
+
+*This JSON is a schema illustration, not an actual ECONOVA observation.*
+
+### Data ingestion lifecycle
+
+```mermaid
+flowchart LR
+    P[Public Data Providers] --> A[Provider Adapters]
+    A --> R[Raw Data Staging]
+    R --> V[Validation & Normalization]
+    V --> Q{Quality Checks}
+    Q -->|Pass| C[Canonical Observations]
+    Q -->|Fail| E[Quarantine / Error Log]
+    C --> S[(Database / Parquet)]
+    S --> D[Domain Services]
+    D --> API[Versioned API]
+    API --> UI[Dashboards / Reports]
+```
+
+Recommended validation checks:
+
+- Required fields and valid country/indicator identifiers
+- Numeric parsing and expected units
+- Duplicate observations and conflicting provider records
+- Valid observation periods and frequency consistency
+- Plausibility checks without silently altering source values
+- Missing-value handling and revision tracking
+- Provider attribution and retrieval timestamp
+
+---
+
+## AI Economist and Research Workflow
+
+The AI Economist should be a research assistant, not an unsupported answer generator.
+
+### Grounded question-answering pipeline
+
+```mermaid
+flowchart TD
+    Q[User Research Question] --> I[Intent and Topic Detection]
+    I --> R[Retrieve Relevant Data and Documents]
+    R --> C[Context Assembly]
+    C --> L[LLM / Answer Generation]
+    L --> V[Evidence and Citation Validation]
+    V --> O[Answer with Sources, Caveats, and Related Indicators]
+```
+
+A response should distinguish:
+
+- **Sourced fact:** directly supported by a cited provider or document.
+- **Calculated result:** derived from identified observations using a stated method.
+- **Interpretation:** an analytical explanation based on the evidence.
+- **Hypothesis:** a possible explanation that needs further testing.
+
+Example research question:
+
+> Why is the Indian rupee depreciating, and what are the possible economic consequences?
+
+A high-quality response should identify the period being discussed, retrieve relevant exchange-rate and macroeconomic evidence, explain plausible drivers, cite sources, and state uncertainty. It should not invent current values or claim causality from correlation alone.
+
+### Research document workflow
+
+1. Upload a permitted PDF or document.
+2. Extract text and preserve document metadata.
+3. Split content into traceable chunks.
+4. Create embeddings and index them for retrieval.
+5. Retrieve relevant passages for a question.
+6. Generate a response grounded in those passages.
+7. Display document title, page or section reference, and source metadata.
+
+---
+
+## Forecasting and Scenario Simulation
+
+### Forecasting workflow
+
+Potential methods include:
+
+- Naive and seasonal-naive baselines
+- Exponential smoothing
+- ARIMA and SARIMA
+- VAR and VECM where assumptions and data permit
+- Random Forest and gradient-boosting models
+- Experimental LSTM models where adequate data is available
+
+Each forecast run should record:
+
+- Target indicator, country, frequency, and training period
+- Data source and dataset version
+- Model name, parameters, and software version
+- Train/test split and validation method
+- Forecast horizon and prediction intervals
+- MAE, RMSE, MAPE (where appropriate), and baseline comparison
+- Run timestamp and limitations
+
+Use chronological validation and avoid random shuffling of time-series observations. Forecasts are estimates with uncertainty, not guaranteed outcomes.
+
+### Scenario simulation
+
+The simulator can support hypothetical changes such as:
+
+- Crude oil price shocks
+- Policy interest-rate changes
+- Government expenditure changes
+- Currency depreciation
+- Export declines or import-cost increases
+- Combined macroeconomic shocks
+
+A scenario result should show the baseline, changed assumptions, model or calculation method, estimated effects, sensitivity, and limitations. It must be labelled as a **hypothetical scenario**, not a forecast or official projection.
+
+---
+
+## Security and Administration
+
+ECONOVA includes a protected administration area for authorized platform management.
+
+### Administrator profile
+
+- **Display name:** Atharav
+- **Role:** Super Administrator
+
+The initial administrator should be provisioned through a secure setup process or environment configuration. Never commit credentials, password hashes, API keys, or secret tokens to the repository.
+
+### Administration capabilities
+
+- User management and role assignment
+- Module and feature configuration
+- Data-provider and ingestion monitoring
+- AI and retrieval configuration
+- Forecast model registry and run monitoring
+- Research-document and report management
+- API health, application logs, and audit events
+- Security settings and platform configuration
+
+### Security baseline
+
+- Hash passwords using a modern password-hashing algorithm.
+- Enforce authorization on the backend for every protected operation.
+- Prevent users from granting themselves elevated roles.
+- Validate inputs and outputs; apply upload type and size restrictions.
+- Keep secrets in environment variables or a secret manager.
+- Configure CORS narrowly for trusted frontend origins.
+- Use HTTPS in deployed environments.
+- Avoid logging passwords, tokens, or sensitive document content.
+- Record security-relevant administrative actions.
+- Apply rate limits and safe error handling to authentication and AI endpoints.
+
+---
+
+## Getting Started
+
+The commands below are a **development template** for the recommended React + FastAPI architecture. Confirm the actual folder names, package scripts, and dependency files in your repository before running them.
+
+### Prerequisites
+
+- Git
+- Node.js LTS and npm
+- Python 3.11+ (or the version pinned by the project)
+- Optional: PostgreSQL
+- Optional: Docker and Docker Compose
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/<YOUR-USERNAME>/<YOUR-REPOSITORY>.git
+cd ECONOVA
+```
+
+Replace the GitHub URL with the actual repository URL.
+
+### 2. Configure environment variables
+
+```bash
+cp .env.example .env
+```
+
+On Windows PowerShell:
 
 ```powershell
-Set-Location C:\Users\Atharaw\OneDrive\Desktop\ECONOVA\frontend
+Copy-Item .env.example .env
+```
+
+Set only the values required by the local application. Do not commit `.env`.
+
+### 3. Start the backend
+
+If the backend uses FastAPI and `backend/requirements.txt`:
+
+```bash
+python -m venv .venv
+```
+
+Activate the environment:
+
+```bash
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+
+# macOS / Linux
+source .venv/bin/activate
+```
+
+Install dependencies and start the API:
+
+```bash
+pip install -r backend/requirements.txt
+uvicorn app.main:app --reload --app-dir backend
+```
+
+Typical local API address: `http://127.0.0.1:8000`
+
+If configured, interactive API documentation is available at:
+
+- `http://127.0.0.1:8000/docs`
+- `http://127.0.0.1:8000/redoc`
+
+### 4. Start the frontend
+
+If the frontend is in `frontend/` and uses npm:
+
+```bash
+cd frontend
 npm install
 npm run dev
 ```
 
-Open http://localhost:5173. Configure `VITE_API_URL` only when the API is hosted somewhere other than `http://localhost:8000/api/v1`.
+Open the local URL printed by Vite in the terminal (commonly `http://localhost:5173`).
 
-### Docker Compose (optional)
+### 5. Database setup
 
-Set operator-supplied values in the current PowerShell session; do not commit them:
+Use the database configured by the project. If SQLAlchemy and Alembic are configured, apply migrations using the repository's migration configuration, for example:
 
-```powershell
-$env:POSTGRES_PASSWORD = py -3.13 -c "import secrets; print(secrets.token_urlsafe(32))"
-$env:SECRET_KEY = py -3.13 -c "import secrets; print(secrets.token_urlsafe(48))"
-docker compose up --build
+```bash
+alembic upgrade head
 ```
 
-The API uses PostgreSQL in Compose. Provision its administrator separately using the protected CLI inside the running API container:
+Do not run this command until the database URL and Alembic configuration have been checked.
 
-```powershell
-$env:ADMIN_EMAIL = Read-Host "Administrator email"
-docker compose exec -e "ADMIN_EMAIL=$env:ADMIN_EMAIL" api python -m app.create_admin
-Remove-Item Env:ADMIN_EMAIL
+---
+
+## Configuration
+
+Keep a safe `.env.example` in the repository and store real credentials only in the local `.env` file or deployment secret settings.
+
+Example variable names (adapt to the implementation):
+
+```dotenv
+APP_ENV=development
+APP_NAME=ECONOVA
+API_V1_PREFIX=/api/v1
+SECRET_KEY=replace-with-a-long-random-local-secret
+DATABASE_URL=sqlite:///./econova.db
+FRONTEND_ORIGIN=http://localhost:5173
+
+# Optional provider credentials; leave unset when not required.
+WORLD_BANK_API_BASE=https://api.worldbank.org/v2
+RBI_API_KEY=
+GEMINI_API_KEY=
+
+# Optional file and retrieval settings.
+UPLOAD_DIR=./storage/uploads
+VECTOR_INDEX_DIR=./storage/vector_index
 ```
 
-The CLI prompts for the password without echoing it. Compose does not create cloud resources or enable paid billing.
+These are configuration examples only. Provider credentials and AI services should be optional where possible, with a local fallback path. Never expose secrets in frontend variables or commit real keys.
 
-## Modules and actual capability status
+---
 
-All modules use the same application shell, authentication system and shared backend routes. Module pages with partial functionality are explicitly limited; a route does not mean every requested feature is complete.
+## API Overview
 
-The Overview is a compact economic-intelligence dashboard: indicator cards, sourced trend chart, stored cross-country GDP comparison, evidence-availability notice, report shortcuts, provider sync and quick links to all twelve workspaces. Values are read from stored provider observations; unavailable series remain blank until synced.
+Suggested versioned API surface:
 
-| Module | Current state |
-|---|---|
-| Overview | Available: sourced indicator cards, trend chart, stored country comparison, workspace shortcuts and on-demand World Bank sync |
-| Economic Pulse | Partial: World Bank indicator explorer; no complete live pulse suite |
-| Global Economy | Partial: country/indicator series explorer; no interactive world map, rankings or multi-country comparison |
-| Economic Forecast | Available: ARIMA candidate plus naive fallback, chronological holdout metrics, prediction interval table; annual history required |
-| AI Economist | Evidence-unavailable mode; no ungrounded Gemini answers or invented citations are returned |
-| PolicyLab | Unavailable: policy document acquisition, extraction and source-grounded analysis are not implemented |
-| Scenario Simulator | Available: saved, account-scoped arithmetic percentage sensitivity only; not a calibrated or causal model |
-| Trade Intelligence | Partial: World Bank imports/exports and related series; no commodity/partner breakdown workflow |
-| Financial Intelligence | Partial: selected World Bank financial indicators; no complete RBI or market feed |
-| Research Lab | Unavailable: PDF upload, page extraction, retrieval and literature review are not implemented |
-| Data Explorer | Available: supported World Bank catalogue, country/indicator/year filters, observations, CSV/JSON export |
-| Development & Human Progress | Partial: selected World Bank social indicators; no regional or complete SDG analytics |
-| Insights & Reports | Available: source-attributed CSV/JSON and PDF exports from stored observations; no scheduled briefings or AI reports |
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `GET` | `/api/v1/overview` | Overview KPIs and dashboard summary |
+| `GET` | `/api/v1/pulse/indicators` | Macroeconomic indicator observations |
+| `GET` | `/api/v1/global/countries` | Country catalogue |
+| `GET` | `/api/v1/global/compare` | Compare selected economies |
+| `POST` | `/api/v1/forecast/run` | Execute a forecast run |
+| `POST` | `/api/v1/ai/query` | Submit an evidence-grounded research question |
+| `GET` | `/api/v1/policy/documents` | Search policy documents |
+| `POST` | `/api/v1/simulator/run` | Run a hypothetical scenario |
+| `GET` | `/api/v1/trade/observations` | Trade data and partner analysis |
+| `GET` | `/api/v1/finance/indicators` | Monetary and financial indicators |
+| `POST` | `/api/v1/research/documents` | Add a research document |
+| `GET` | `/api/v1/data/catalogue` | Search available datasets and indicators |
+| `GET` | `/api/v1/development/indicators` | Human-development observations |
+| `POST` | `/api/v1/reports/generate` | Generate a source-attributed report |
 
-Administration provides backend-protected summary, user role management and an audit log. Data-source administration, system settings, ingestion queue controls, forecast model management and research-document administration are not yet implemented. Public registration creates researcher accounts only. Administrator API access requires the `SUPER_ADMIN` role.
+This table describes a proposed API contract. An endpoint should be considered available only when it exists and is tested in the running backend.
 
-## Data freshness and integrity
+---
 
-- The current external connector uses the free public World Bank Indicators API. Sync occurs only when an authenticated user requests it.
-- Indicators are historical and generally annual; publication and revision schedules vary by provider. “Sync” means a provider request, not that a new period is available. The application does not provide tick-level prices, live market quotes or continuous streaming.
-- Each stored observation includes its source, country, indicator, unit, reference period and ECONOVA retrieval time. When the provider revises an existing value, ECONOVA updates the stored value and retrieval timestamp; full revision history is not yet retained.
-- Empty data remain empty. The UI does not fill economic cards with demo or fabricated statistics. The optional `scripts/seed_demo.py` fixture is synthetic and for demonstrations only.
-- RBI, MOSPI, IMF, OECD and UN Comtrade connectors are not verified live integrations in this implementation.
+## Testing and Quality
 
-## Security and operations
+Recommended quality gates:
 
-- Passwords use PBKDF2-SHA256 with 600,000 rounds (legacy bcrypt hashes remain verifiable).
-- API operations that create user-specific scenarios, retrieve research responses or change administration data require a bearer token. Role changes and data syncs are audited.
-- CORS is restricted to configured/local development origins. API errors avoid returning provider exception strings or credentials.
-- Configure PostgreSQL, a private signing key, HTTPS termination, backups, schema migrations, rate limiting, structured monitoring and secret rotation before exposing a deployment to a network. The current SQLite additive migration covers local schema evolution but is not a substitute for Alembic.
-- The frontend stores its bearer token in browser local storage. Deployments with stronger browser threat requirements should use an HTTPS, HttpOnly cookie session design and CSRF controls.
-- Gemini is not used to generate unsupported economic facts. The document retrieval and page-citation workflow needed for grounded synthesis remains unavailable, even if a key is configured.
+### Backend
 
-## Validation
+```bash
+pytest
+```
 
-From the repository root:
+Test API validation, authorization, provider adapters, data normalization, calculations, model evaluation, and error handling.
 
-```powershell
-Set-Location frontend
+### Frontend
+
+Use the scripts defined in `frontend/package.json`, for example:
+
+```bash
+npm run lint
 npm run build
-Set-Location ..
-$env:PYTHONPATH = "backend"
-py -3.13 -m pytest backend/tests -q
 ```
 
-## Project layout
+### End-to-end checks
 
-`frontend/` contains the ECONOVA React/TypeScript application; `backend/app/` contains the FastAPI API, authentication, SQLAlchemy models and World Bank/forecast/sensitivity services. `economic_engine/`, `forecasting/`, `simulation/`, `ai_engine/` and `reports/` contain supporting components and extension points. See `docs/architecture.md`, `docs/api_documentation.md` and `docs/database_design.md` for design context.
-#   E C O N O V A  
- 
+- All module routes load and handle refresh/deep links.
+- Filters update the correct data query.
+- Loading, empty, stale, partial, and error states are visible.
+- Charts show units, time periods, and source context.
+- Missing observations are not displayed as zero.
+- Exports match the selected filters and include source metadata.
+- Unauthorized users cannot access administrator actions.
+- Layout remains usable on desktop, tablet, and mobile.
+
+---
+
+## Deployment
+
+ECONOVA is intended to support local development first, with deployment choices made according to actual provider limits and the project's storage requirements.
+
+Possible deployment components:
+
+- **Frontend:** static hosting compatible with Vite builds.
+- **Backend:** a Python ASGI-compatible host.
+- **Database:** PostgreSQL with persistent storage.
+- **Documents and datasets:** persistent disk or object storage.
+- **Scheduled ingestion:** a worker or scheduled job, where supported.
+
+### Free-tier deployment considerations
+
+- Confirm whether a provider requires a payment card or billing activation before choosing it.
+- Free services may sleep, have quotas, or impose CPU, memory, bandwidth, and storage limits.
+- Ephemeral filesystems are not suitable for persistent uploads or a production database.
+- Do not assume a free hosting tier is suitable for continuous ingestion or heavy model training.
+- Keep local development functional if a hosted provider is unavailable.
+
+---
+
+## Roadmap
+
+The following is a suggested implementation sequence, not a claim that every item is already complete.
+
+- [ ] Repository audit and environment setup
+- [ ] Shared application shell and responsive navigation
+- [ ] Authentication, user roles, and administrator provisioning
+- [ ] Canonical country, indicator, and observation data models
+- [ ] Provider adapters and validated ingestion pipeline
+- [ ] ECONOVA PULSE and GLOBAL
+- [ ] ECONOVA DATA EXPLORER
+- [ ] ECONOVA FORECAST and model evaluation
+- [ ] ECONOVA SIMULATOR
+- [ ] ECONOVA AI ECONOMIST and source-grounded RAG
+- [ ] POLICYLAB, TRADE, and FINANCE
+- [ ] RESEARCH LAB and document processing
+- [ ] DEVELOPMENT & HUMAN PROGRESS
+- [ ] INSIGHTS & REPORTS
+- [ ] Audit logging, monitoring, and security review
+- [ ] Automated tests and deployment documentation
+
+---
+
+## Data & Research Integrity
+
+ECONOVA is an economic research and intelligence tool. It is not a substitute for official statistical releases, professional economic advice, or investment advice.
+
+- Always verify important figures against their original provider.
+- Display the observation period separately from the retrieval date.
+- Preserve provider definitions, units, frequency, and revision status.
+- Do not describe periodic data as real-time.
+- Do not treat missing values as zero or as estimates.
+- Label forecasts, model outputs, and simulations clearly.
+- Document assumptions, methodology, and known limitations.
+- Cite sources for AI-generated research and make unsupported claims visible.
+
+---
+
+## Contributing
+
+Contributions, bug reports, and architecture discussions are welcome.
+
+1. Fork the repository.
+2. Create a focused branch: `git checkout -b feature/your-feature`.
+3. Make the change and add or update tests.
+4. Run relevant lint, test, and build commands.
+5. Open a pull request describing the change, design decisions, and validation performed.
+
+Please do not commit API keys, credentials, private datasets, user uploads, or generated files that should remain local.
+
+---
+
+## License
+
+No license has been specified in this README. Before making the repository public or accepting external contributions, add a `LICENSE` file that clearly states how the code may be used, modified, and distributed.
+
+---
+
+<div align="center">
+
+**ECONOVA — Economic Intelligence & Research Platform**
+
+*Built to turn economic data into transparent, traceable research.*
+
+</div>
