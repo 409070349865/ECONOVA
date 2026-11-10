@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: econova
+      POSTGRES_USER: econova
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in your shell}
+    volumes:
+      - econova_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U econova -d econova"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg://econova:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in your shell}@db:5432/econova
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY to a unique random value of at least 32 characters}
+      FRONTEND_ORIGIN: http://localhost:5173
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+  frontend:
+    image: node:22-alpine
+    working_dir: /workspace
+    volumes:
+      - ./frontend:/workspace
+      - frontend_modules:/workspace/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "127.0.0.1:5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:8000/api/v1
+    depends_on:
+      - api
+volumes:
+  econova_data:
+  frontend_modules:

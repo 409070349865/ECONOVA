@@ -1,0 +1,6 @@
+flowchart LR
+ A[World Bank API] --> B[Ingestion]
+ B --> C[Schema and unit validation]
+ C --> D[Canonical observations]
+ D --> E[(Database)]
+ E --> F[API and dashboards]
