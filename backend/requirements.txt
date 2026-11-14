@@ -8,8 +8,15 @@ python-multipart==0.0.20
 httpx==0.28.1
 pandas==2.2.3
 numpy==2.2.4
+matplotlib==3.10.1
+seaborn==0.13.2
+plotly==6.2.0
 statsmodels==0.14.4
 scikit-learn==1.6.1
 reportlab==4.3.1
+pypdf==6.18.1
+openpyxl==3.1.5
+xlrd==2.0.2
 email-validator==2.2.0
+psycopg[binary]==3.2.6
 pytest==8.3.5

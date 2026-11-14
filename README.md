@@ -95,12 +95,12 @@ ECONOVA is organized into twelve connected modules. Each module should have its 
 | 1 | **ECONOVA PULSE** | `/pulse` | Monitor macroeconomic indicators such as GDP, inflation, employment, industrial production, interest rates, reserves, and fiscal balance. |
 | 2 | **ECONOVA GLOBAL** | `/global` | Explore countries and regions, compare up to five economies, and examine GDP, inflation, unemployment, debt, and development indicators. |
 | 3 | **ECONOVA FORECAST** | `/forecast` | Run and compare time-series and machine-learning forecasts with backtesting, evaluation metrics, and uncertainty intervals. |
-| 4 | **ECONOVA AI ECONOMIST** | `/ai-economist` | Ask economic questions, retrieve research evidence, explain indicators, and generate cited analytical responses. |
-| 5 | **ECONOVA POLICYLAB** | `/policylab` | Explore Union Budget, Economic Survey, RBI policy, fiscal and monetary policy, taxation, and public expenditure documents. |
+| 4 | **ECONOVA AI ECONOMIST** | `/ai-economist` | Ask economics questions, include selected-country observations, and analyze uploaded files with citations. |
+  | 5 | **ECONOVA POLICYLAB** | `/policylab` | Browse Indian government and RBI policies, latest official macroeconomic statistics, policy goals, implementation measures, trade-offs, and source links. Policy details appear on hover or keyboard focus. |
 | 6 | **ECONOVA SIMULATOR** | `/simulator` | Model hypothetical shocks such as oil-price changes, interest-rate shifts, currency depreciation, and spending changes. |
-| 7 | **ECONOVA TRADE** | `/trade` | Study imports, exports, trade balances, commodity flows, trade partners, and concentration or dependency risks. |
-| 8 | **ECONOVA FINANCE** | `/finance` | Explore monetary and financial indicators such as policy rates, money supply, exchange rates, bond yields, reserves, and credit. |
-| 9 | **ECONOVA RESEARCH LAB** | `/research` | Organize research documents, extract content, conduct literature reviews, manage citations, and run statistical analysis. |
+| 7 | **ECONOVA TRADE** | `/trade` | Inspect the latest released monthly goods exports/imports by partner with interactive bar, pie and box plots plus a walk-forward trade-balance direction confusion matrix. Data is release-based, not streaming. |
+| 8 | **ECONOVA FINANCE** | `/finance` | View one-minute/five-minute intraday bars with 30-second refresh, daily country-index history, OHLC and volume, technical patterns and model-based ranges. The free chart provider does not guarantee exchange-grade real-time quotes. |
+  | 9 | **ECONOVA RESEARCH LAB** | `/research-lab` (`/research` alias) | Browse source-linked economics studies and Economic Survey evidence, including findings, methods, limitations, and measurable goals for growth, jobs, infrastructure, skills, and productivity. |
 | 10 | **ECONOVA DATA EXPLORER** | `/data-explorer` | Search the indicator catalogue, inspect datasets, filter by country and period, review metadata, and export data. |
 | 11 | **ECONOVA DEVELOPMENT & HUMAN PROGRESS** | `/development` | Explore poverty, inequality, education, healthcare, labour participation, human development, and sustainable development. |
 | 12 | **ECONOVA INSIGHTS & REPORTS** | `/insights` | Create daily or periodic briefings, country reports, policy reports, forecast summaries, and custom exports. |
@@ -234,7 +234,7 @@ The following is the recommended architecture stack. Check the actual dependency
 | Routing | React Router | Module navigation |
 | Server state | TanStack Query | API caching and request lifecycle |
 | Client state | Zustand | Shared UI preferences and state |
-| Charts | Plotly.js | Interactive economic charts |
+| Charts | Recharts; Python Plotly, Matplotlib and Seaborn | Interactive application charts, financial candles, and statistical risk diagnostics |
 | Forms | React Hook Form, Zod | Form state and validation |
 | Backend | Python, FastAPI | REST API and domain services |
 | Validation | Pydantic | Request and response schemas |
@@ -362,6 +362,16 @@ ECONOVA should use provider adapters so that each source can be updated or repla
 | OECD | Country and policy statistics | Coverage varies by indicator and country |
 | UN Comtrade | Merchandise trade flows by reporter, partner, and commodity | Classification, units, reporting period, and API terms |
 
+### Active overview data feeds
+
+The overview fetches missing GDP growth, consumer inflation, and unemployment observations from World Bank Open Data. Fiscal balance comes from the OECD Economic Outlook (`NLGQ`, general-government net lending as a percentage of GDP) through the OECD SDMX API. The dashboard uses data only through the last completed year, labels the fiscal value as an estimate, and excludes forecast years. These sources publish periodically, so the figures are not live market data.
+
+### Financial market data and analytics
+
+Financial Intelligence offers daily open/high/low/close/volume history for selected national indices, including NIFTY 50, SENSEX, NIFTY BANK, S&P 500, NASDAQ Composite, Dow Jones, Nikkei 225, FTSE 100, DAX, and SSE Composite. It retrieves daily history from Yahoo Finance's chart feed, caches each index/range for five minutes, and shows the retrieval time and source link. The feed can be delayed or unavailable and is not licensed exchange-grade real-time data.
+
+The dashboard calculates moving averages, RSI, MACD, recent support/resistance zones, and realized volatility from returned prices. Its 5/20/60-session closing-level ranges use recent average log returns and volatility; the displayed bands are statistical scenarios, not reliable predictions, guaranteed highs/lows, or trading advice. An interactive Plotly candlestick chart and Matplotlib/Seaborn return and volatility diagnostics are rendered on demand. No synthetic market prices are substituted when a provider request fails.
+
 ### Canonical observation model
 
 A normalized observation should retain enough metadata to be interpreted and reproduced.
@@ -415,7 +425,13 @@ Recommended validation checks:
 
 ## AI Economist and Research Workflow
 
-The AI Economist should be a research assistant, not an unsupported answer generator.
+The AI Economist uses the configured Gemini model for economics-only conversational answers. It receives the selected country's latest stored overview indicators and any attached file summaries; it does not claim those periodic observations are live data. `GEMINI_API_KEY` must be configured in the backend environment or deployment secrets for conversational answers.
+
+The upload endpoint accepts CSV, TSV, XLS/XLSX, JSON/JSONL, PDF, DOCX, PPTX, TXT, Markdown, HTML, and XML files up to 15 MB each. Tabular files receive local descriptive statistics and sample/group summaries. Text is extracted from supported documents. Scanned PDFs, password-protected PDFs, and unsupported binary formats are rejected with an explanation. Raw files are not retained; extracted summaries are stored for up to 24 hours and can be deleted from the AI Economist page. Attached text is sent to Gemini only when the visitor submits a question.
+
+Public usage is limited to 20 AI requests per minute and 10 uploads per hour per client address per backend process. For a multi-worker production deployment, put a shared rate limiter in front of the API.
+
+The active endpoints are `GET /api/v1/research/status`, `POST /api/v1/research/uploads`, `DELETE /api/v1/research/uploads/{upload_id}`, and `POST /api/v1/research/ask`.
 
 ### Grounded question-answering pipeline
 
@@ -533,13 +549,13 @@ The initial administrator should be provisioned through a secure setup process o
 
 ## Getting Started
 
-The commands below are a **development template** for the recommended React + FastAPI architecture. Confirm the actual folder names, package scripts, and dependency files in your repository before running them.
+The repository includes a React + Vite frontend and a FastAPI backend. For local development, run each in its own terminal. The production Docker image builds the frontend and serves it from the backend on port 8000.
 
 ### Prerequisites
 
 - Git
 - Node.js LTS and npm
-- Python 3.11+ (or the version pinned by the project)
+- Python 3.11–3.13
 - Optional: PostgreSQL
 - Optional: Docker and Docker Compose
 
@@ -566,59 +582,45 @@ Copy-Item .env.example .env
 
 Set only the values required by the local application. Do not commit `.env`.
 
-### 3. Start the backend
-
-If the backend uses FastAPI and `backend/requirements.txt`:
+### 3. Build the frontend
 
 ```bash
-python -m venv .venv
+cd frontend
+npm ci
+npm run build
+cd ..
 ```
 
-Activate the environment:
+### 4. Start the backend
 
-```bash
-# Windows PowerShell
-.venv\Scripts\Activate.ps1
+Create a virtual environment, install the backend dependencies, and start the API from the repository root:
 
-# macOS / Linux
-source .venv/bin/activate
+```powershell
+py -3.13 -m venv .venv
+.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
+.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --reload --host 127.0.0.1 --port 8000
 ```
 
-Install dependencies and start the API:
+On macOS or Linux, use `python3` and `.venv/bin/` in place of the Windows launcher and paths above.
 
-```bash
-pip install -r backend/requirements.txt
-uvicorn app.main:app --reload --app-dir backend
-```
-
-Typical local API address: `http://127.0.0.1:8000`
+With the frontend built, open `http://127.0.0.1:8000/`. The same server provides the API and the application interface.
 
 If configured, interactive API documentation is available at:
 
 - `http://127.0.0.1:8000/docs`
 - `http://127.0.0.1:8000/redoc`
 
-### 4. Start the frontend
+### 5. Run the frontend in development mode
 
-If the frontend is in `frontend/` and uses npm:
+In another terminal, start Vite for hot reload:
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
-Open the local URL printed by Vite in the terminal (commonly `http://localhost:5173`).
-
-### 5. Database setup
-
-Use the database configured by the project. If SQLAlchemy and Alembic are configured, apply migrations using the repository's migration configuration, for example:
-
-```bash
-alembic upgrade head
-```
-
-Do not run this command until the database URL and Alembic configuration have been checked.
+Open `http://127.0.0.1:5173/`. Vite proxies `/api` requests to the backend on port 8000. SQLite tables are created automatically for local development.
 
 ---
 
@@ -626,27 +628,21 @@ Do not run this command until the database URL and Alembic configuration have be
 
 Keep a safe `.env.example` in the repository and store real credentials only in the local `.env` file or deployment secret settings.
 
-Example variable names (adapt to the implementation):
+The backend reads these settings from the environment or a root `.env` file:
 
 ```dotenv
-APP_ENV=development
-APP_NAME=ECONOVA
-API_V1_PREFIX=/api/v1
-SECRET_KEY=replace-with-a-long-random-local-secret
 DATABASE_URL=sqlite:///./econova.db
+SECRET_KEY=
 FRONTEND_ORIGIN=http://localhost:5173
-
-# Optional provider credentials; leave unset when not required.
-WORLD_BANK_API_BASE=https://api.worldbank.org/v2
-RBI_API_KEY=
 GEMINI_API_KEY=
-
-# Optional file and retrieval settings.
-UPLOAD_DIR=./storage/uploads
-VECTOR_INDEX_DIR=./storage/vector_index
+GEMINI_MODEL=gemini-3.5-flash-lite
+PROVIDER_HTTP_LOCAL_ADDRESS=0.0.0.0
+VITE_API_URL=/api/v1
 ```
 
-These are configuration examples only. Provider credentials and AI services should be optional where possible, with a local fallback path. Never expose secrets in frontend variables or commit real keys.
+`PROVIDER_HTTP_LOCAL_ADDRESS` defaults to IPv4 to avoid unreachable IPv6 routes on some hosts. Set it to `::` for an IPv6-only deployment.
+
+For Docker Compose, also set `POSTGRES_PASSWORD` and a unique `SECRET_KEY` of at least 32 characters in `.env`. Compose uses PostgreSQL and persistent storage. Never expose backend secrets through `VITE_*` variables or commit real keys.
 
 ---
 
@@ -665,6 +661,9 @@ Suggested versioned API surface:
 | `GET` | `/api/v1/policy/documents` | Search policy documents |
 | `POST` | `/api/v1/simulator/run` | Run a hypothetical scenario |
 | `GET` | `/api/v1/trade/observations` | Trade data and partner analysis |
+| `GET` | `/api/v1/trade/overview?country=IND` | Latest released trade totals, partner rows and held-out direction backtest |
+| `GET` | `/api/v1/trade/charts/{chart}?country=IND&flow=X` | Interactive Plotly bar, pie, box and confusion-matrix charts |
+| `GET` | `/api/v1/finance/markets/{asset_id}?range=1d` | Intraday index bars, technical analysis and approximate statistical range |
 | `GET` | `/api/v1/finance/indicators` | Monetary and financial indicators |
 | `POST` | `/api/v1/research/documents` | Add a research document |
 | `GET` | `/api/v1/data/catalogue` | Search available datasets and indicators |
@@ -711,15 +710,13 @@ npm run build
 
 ## Deployment
 
-ECONOVA is intended to support local development first, with deployment choices made according to actual provider limits and the project's storage requirements.
+The included Dockerfile builds the Vite frontend and packages it with the FastAPI service. Docker Compose runs that service with PostgreSQL and a persistent database volume. Set `POSTGRES_PASSWORD` and a unique `SECRET_KEY` (at least 32 characters) in `.env`, then run:
 
-Possible deployment components:
+```bash
+docker compose up --build -d
+```
 
-- **Frontend:** static hosting compatible with Vite builds.
-- **Backend:** a Python ASGI-compatible host.
-- **Database:** PostgreSQL with persistent storage.
-- **Documents and datasets:** persistent disk or object storage.
-- **Scheduled ingestion:** a worker or scheduled job, where supported.
+Open `http://localhost:8000/`; check `http://localhost:8000/health` for service and database readiness, and `/docs` for the API documentation. Configure `FRONTEND_ORIGIN` for the deployment domain before exposing a separately hosted frontend. The Compose database volume persists data across container restarts; configure backups for production.
 
 ### Free-tier deployment considerations
 
@@ -745,8 +742,9 @@ The following is a suggested implementation sequence, not a claim that every ite
 - [ ] ECONOVA FORECAST and model evaluation
 - [ ] ECONOVA SIMULATOR
 - [ ] ECONOVA AI ECONOMIST and source-grounded RAG
-- [ ] POLICYLAB, TRADE, and FINANCE
-- [ ] RESEARCH LAB and document processing
+  - [x] PolicyLab government policy tracker and official statistics dashboard
+- [ ] TRADE and FINANCE
+  - [x] Research Lab source-linked research library and economic goals agenda
 - [ ] DEVELOPMENT & HUMAN PROGRESS
 - [ ] INSIGHTS & REPORTS
 - [ ] Audit logging, monitoring, and security review

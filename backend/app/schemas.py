@@ -16,8 +16,19 @@ class ScenarioInput(BaseModel):
     shock_percent: float = Field(ge=-100, le=500, allow_inf_nan=False)
     assumptions: str = Field(default="Conditional sensitivity assumption", max_length=2000)
 
+class ResearchUploadReference(BaseModel):
+    id: str = Field(min_length=36, max_length=36)
+    token: str = Field(min_length=32, max_length=128)
+
+class ResearchMessage(BaseModel):
+    role: str = Field(pattern="^(user|assistant)$")
+    content: str = Field(min_length=1, max_length=6000)
+
 class ResearchQuestion(BaseModel):
     question: str = Field(min_length=3, max_length=2000)
+    country: str = Field(default="JPN", min_length=3, max_length=3, pattern="^[A-Za-z]{3}$")
+    uploads: list[ResearchUploadReference] = Field(default_factory=list, max_length=5)
+    history: list[ResearchMessage] = Field(default_factory=list, max_length=12)
 
 class ForecastInput(BaseModel):
     country: str = Field(default="IND", min_length=3, max_length=3, pattern="^[A-Za-z]{3}$")

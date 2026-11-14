@@ -13,7 +13,7 @@ pwd = CryptContext(
     deprecated="bcrypt",
     pbkdf2_sha256__default_rounds=600_000,
 )
-oauth = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+optional_oauth = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
 def hash_password(value: str) -> str:
     return pwd.hash(value)
@@ -25,15 +25,19 @@ def create_token(user_id: int) -> str:
     expiry = datetime.now(timezone.utc) + timedelta(minutes=settings.access_token_minutes)
     return jwt.encode({"sub": str(user_id), "exp": expiry}, settings.secret_key, algorithm="HS256")
 
-def current_user(token: str = Depends(oauth), db: Session = Depends(get_db)):
-    error = HTTPException(status_code=401, detail="Invalid or expired authentication token")
+def optional_user(token: str | None = Depends(optional_oauth), db: Session = Depends(get_db)) -> User | None:
+    if token is None:
+        return None
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=["HS256"])
         user = db.get(User, int(payload["sub"]))
-    except (JWTError, ValueError, KeyError):
-        raise error
-    if not user:
-        raise error
+    except (JWTError, ValueError, KeyError, TypeError):
+        return None
+    return user
+
+def current_user(user: User | None = Depends(optional_user)) -> User:
+    if user is None:
+        raise HTTPException(status_code=401, detail="Invalid or expired authentication token")
     return user
 
 def require_admin(user: User = Depends(current_user)) -> User:
